@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#7fd3ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Morgonen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Morgonuppdraget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--sky1:#7fd3ff; --sky2:#c9f0ff;
+--ink:#2b2350;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);overflow-x:hidden}
+body{
+background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 60%,#e8fbff 100%);
+min-height:100vh;
+}
+/* bakgrundsdekor */
+.sun{position:fixed;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;
+background:radial-gradient(circle,#fff6a8 0%,#ffd84a 55%,#ffb703 100%);
+box-shadow:0 0 80px 30px rgba(255,216,74,.55);animation:spin 40s linear infinite;z-index:0}
+.sun::before{content:"";position:absolute;inset:-40px;border-radius:50%;
+background:repeating-conic-gradient(rgba(255,220,90,.45) 0 10deg,transparent 10deg 30deg);z-index:-1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cloud{position:fixed;background:#fff;border-radius:100px;opacity:.85;z-index:0;filter:drop-shadow(0 6px 0 rgba(0,0,0,.04))}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.c1{width:160px;height:50px;top:70px;left:-200px;animation:drift 55s linear infinite}
+.c1::before{width:70px;height:70px;top:-35px;left:25px}.c1::after{width:55px;height:55px;top:-22px;left:80px}
+.c2{width:120px;height:40px;top:180px;left:-200px;animation:drift 75s linear infinite;animation-delay:-30s}
+.c2::before{width:55px;height:55px;top:-28px;left:18px}.c2::after{width:42px;height:42px;top:-18px;left:60px}
+@keyframes drift{to{transform:translateX(calc(100vw + 400px))}}
+.hills{position:fixed;left:0;right:0;bottom:0;height:120px;z-index:0;pointer-events:none}
+header{position:relative;z-index:2;text-align:center;padding:18px 16px 6px}
+h1{margin:0;font-size:clamp(28px,5vw,48px);font-weight:700;color:#fff;
+text-shadow:0 3px 0 #3a86c8,0 6px 14px rgba(0,0,0,.15);letter-spacing:.5px}
+.sub{font-size:clamp(14px,2vw,18px);color:#24527a;font-weight:600;margin-top:2px}
+main{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:18px;
+padding:12px 18px 60px;max-width:1200px;margin:0 auto}
+@media (max-width:720px){main{grid-template-columns:1fr}}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.tabs{display:none}
+@media (max-width:720px){
+header{padding-top:10px}
+.tabs{display:flex;gap:10px;position:relative;z-index:2;padding:8px 14px 0;max-width:600px;margin:0 auto}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-weight:700;font-size:22px;
+border:4px solid #fff;border-radius:22px;padding:8px;color:#fff;opacity:.55;cursor:pointer;transition:.2s}
+.tab .ta{font-size:34px}
+.tab.t-harald{background:linear-gradient(160deg,#5ec8ff,#3a7bff)} .tab.t-klas{background:linear-gradient(160deg,#7be07b,#1fb57a)}
+.tab.active{opacity:1;transform:translateY(-3px);box-shadow:0 6px 0 rgba(0,0,0,.15)}
+.tab .tdone{font-size:20px}
+main .player{display:none} main .player.active{display:block}
+main{padding:12px 12px 20px}
+.weather{padding:0 12px}
+.wcard{gap:10px;padding:10px 14px}
+.wicon{font-size:48px}.wtemp{font-size:36px}
+.wt{min-width:56px;padding:4px 6px}
+.task{min-height:80px}
+.task .icon{font-size:46px;width:58px}
+.task .check{width:56px;height:56px;flex-basis:56px;font-size:38px}
+.grown{position:static;flex-direction:row;justify-content:center;margin:0 0 18px;opacity:.85}
+.hills{height:70px}
+}
+.player{border-radius:32px;padding:16px 16px 18px;position:relative;
+background:var(--bg);box-shadow:0 10px 0 var(--shadow),0 18px 30px rgba(0,0,0,.12);
+border:5px solid #fff;transition:transform .3s}
+.player.done{animation:wiggle 1.2s ease-in-out}
+@keyframes wiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-2deg) scale(1.02)}40%{transform:rotate(2deg) scale(1.03)}60%{transform:rotate(-1deg)}80%{transform:rotate(1deg)}}
+.p-harald{--bg:linear-gradient(160deg,#5ec8ff,#3a7bff);--shadow:#2a58c4;--accent:#ffe066;--tile:#eaf6ff;--tileShadow:#a9cdf2}
+.p-klas{--bg:linear-gradient(160deg,#7be07b,#1fb57a);--shadow:#148a5b;--accent:#ffb3e6;--tile:#ecfff1;--tileShadow:#a8e3bd}
+.phead{display:flex;align-items:center;gap:14px}
+.avatar{width:86px;height:86px;flex:0 0 86px;border-radius:50%;background:#fff;display:grid;place-items:center;
+font-size:54px;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08),0 5px 0 rgba(0,0,0,.15);cursor:pointer;
+transition:transform .2s}
+.avatar:active{transform:scale(.9)}
+.pname{font-size:clamp(30px,4vw,42px);font-weight:700;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.18);line-height:1}
+.stars-total{margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.25);
+color:#fff;font-weight:700;padding:4px 12px;border-radius:99px;font-size:18px}
+/* vägen till förskolan */
+.road{position:relative;height:64px;margin:14px 4px 12px;border-radius:40px;background:rgba(255,255,255,.28)}
+.road .lane{position:absolute;left:24px;right:58px;top:50%;height:10px;transform:translateY(-50%);border-radius:10px;
+background:repeating-linear-gradient(90deg,rgba(255,255,255,.9) 0 18px,transparent 18px 32px)}
+.road .fill{position:absolute;left:6px;top:6px;bottom:6px;border-radius:40px;width:0;
+background:linear-gradient(90deg,#ffe066,#ffb703);transition:width .7s cubic-bezier(.3,1.4,.5,1);box-shadow:0 0 18px rgba(255,210,60,.8)}
+.road .runner{position:absolute;top:50%;left:6px;font-size:40px;transform:translate(0,-55%);
+transition:left .7s cubic-bezier(.3,1.4,.5,1);filter:drop-shadow(0 3px 0 rgba(0,0,0,.2));z-index:2}
+.road .goal{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:40px;z-index:1}
+.road .dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:.7;transition:.3s}
+.road .dot.on{background:#ffd23f;opacity:1;box-shadow:0 0 10px #ffd23f}
+.tasks{display:grid;gap:12px}
+.task{position:relative;display:flex;align-items:center;gap:16px;min-height:92px;padding:10px 16px;border-radius:24px;
+background:var(--tile);box-shadow:0 7px 0 var(--tileShadow);cursor:pointer;border:none;width:100%;
+font-family:inherit;color:var(--ink);text-align:left;transition:transform .12s,box-shadow .12s,background .3s}
+.task:active{transform:translateY(5px);box-shadow:0 2px 0 var(--tileShadow)}
+.task .icon{font-size:54px;width:70px;text-align:center;transition:transform .3s;line-height:1}
+.task .label{font-size:clamp(22px,2.6vw,28px);font-weight:600;flex:1;line-height:1.1}
+.task .check{width:64px;height:64px;flex:0 0 64px;border-radius:50%;border:5px dashed #c4cbe0;display:grid;place-items:center;
+font-size:44px;background:#fff;transition:all .3s}
+.task.done{background:linear-gradient(135deg,#fff7c2,#ffe27a);box-shadow:0 7px 0 #e0b23a}
+.task.done .icon{transform:scale(.85) rotate(-8deg);opacity:.8}
+.task.done .label{text-decoration:line-through;text-decoration-thickness:4px;text-decoration-color:rgba(43,35,80,.35)}
+.task.done .check{border:5px solid #ffb703;background:#fff;animation:pop .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes pop{0%{transform:scale(.2) rotate(-90deg)}100%{transform:scale(1) rotate(0)}}
+.task.hint{animation:bounce 1.6s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.finish{display:none;margin-top:14px;text-align:center;color:#fff;font-size:28px;font-weight:700;
+text-shadow:0 3px 0 rgba(0,0,0,.2)}
+.player.done .finish{display:block;animation:pop .6s cubic-bezier(.3,1.8,.5,1)}
+/* väder */
+.weather{position:relative;z-index:2;max-width:1200px;margin:6px auto 0;padding:0 18px}
+.wcard{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:rgba(255,255,255,.88);border-radius:28px;
+padding:12px 20px;border:5px solid #fff;box-shadow:0 8px 0 rgba(58,134,200,.35),0 14px 24px rgba(0,0,0,.08);cursor:pointer}
+.wnow{display:flex;align-items:center;gap:10px}
+.wicon{font-size:64px;line-height:1;animation:float 3s ease-in-out infinite}
+.wtemp{font-size:46px;font-weight:700;line-height:1}
+.wtemp small{display:block;font-size:15px;font-weight:600;color:#55608a;margin-top:4px}
+.wtimes{display:flex;gap:8px;flex-wrap:wrap}
+.wt{background:#eef6ff;border-radius:16px;padding:6px 10px;text-align:center;min-width:64px}
+.wt b{display:block;font-size:13px;color:#55608a}
+.wt .e{font-size:26px;line-height:1.2}
+.wt .d{font-size:17px;font-weight:700}
+.wclothes{flex:1;min-width:260px}
+.wclothes .h{font-size:18px;font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;background:#fff4c7;border-radius:99px;padding:5px 12px 5px 6px;font-weight:600;font-size:16px;box-shadow:0 3px 0 #f0d47a}
+.chip .ci{font-size:28px;line-height:1;width:32px;height:32px;display:grid;place-items:center}
+.chip svg{width:30px;height:30px}
+.wtip{font-size:14px;color:#55608a;margin-top:6px}
+.wsrc{font-size:12px;color:#7a84a8;margin-top:4px}
+.task .wear{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px;font-size:24px;line-height:1}
+.task .wear svg{width:26px;height:26px}
+.task .lblwrap{flex:1;display:flex;flex-direction:column}
+/* föräldraknappar */
+.grown{position:fixed;z-index:5;top:10px;left:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;opacity:.75}
+.gbtn{font-family:inherit;font-weight:600;font-size:13px;border:none;border-radius:99px;padding:7px 12px;
+background:rgba(255,255,255,.85);color:#2b2350;box-shadow:0 4px 0 rgba(0,0,0,.12);cursor:pointer;position:relative;overflow:hidden}
+.gbtn .prog{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,100,100,.35)}
+.gbtn.holding .prog{width:100%;transition:width 1.5s linear}
+/* firande */
+canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.party{position:fixed;inset:0;z-index:40;display:none;place-items:center;background:rgba(20,10,60,.55);backdrop-filter:blur(2px)}
+.party.show{display:grid;animation:fadein .4s}
+@keyframes fadein{from{opacity:0}}
+.party .card{text-align:center;color:#fff;padding:24px 34px;animation:zoom .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes zoom{from{transform:scale(.2) rotate(-12deg)}}
+.party .big{font-size:clamp(90px,18vw,170px);line-height:1;filter:drop-shadow(0 10px 20px rgba(0,0,0,.3));animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+.party h2{font-size:clamp(40px,7vw,72px);margin:10px 0 4px;text-shadow:0 4px 0 #ff5fa2,0 8px 20px rgba(0,0,0,.3)}
+.party p{font-size:clamp(20px,3vw,28px);margin:0 0 18px;font-weight:600}
+.party .starsrow{font-size:clamp(34px,6vw,54px);letter-spacing:6px;margin-bottom:18px}
+.party .starsrow span{display:inline-block;animation:pop .5s cubic-bezier(.3,1.8,.5,1) both}
+.party button{font-family:inherit;font-size:26px;font-weight:700;border:none;border-radius:99px;padding:14px 38px;
+background:#ffe066;color:#2b2350;box-shadow:0 7px 0 #d9a400;cursor:pointer}
+.party button:active{transform:translateY(5px);box-shadow:0 2px 0 #d9a400}
+/* djurväljare */
+.picker{position:fixed;inset:0;z-index:45;display:none;place-items:center;background:rgba(20,10,60,.5)}
+.picker.show{display:grid}
+.picker .box{background:#fff;border-radius:28px;padding:20px;max-width:520px;width:92%;text-align:center;animation:zoom .4s cubic-bezier(.3,1.6,.5,1)}
+.picker h3{margin:0 0 12px;font-size:26px}
+.picker .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.picker .grid button{font-size:44px;border:none;background:#f1f4ff;border-radius:18px;padding:8px 0;cursor:pointer}
+.picker .grid button:active{transform:scale(.9)}
+/* telefon: sist så att det vinner över reglerna ovan */
+@media (max-width:720px){
+.grown{position:static;transform:none;flex-direction:row;justify-content:center;margin:0 0 18px;opacity:.85}
+h1{font-size:26px;white-space:nowrap}
+.sub{font-size:13px}
+.wtemp small{white-space:nowrap}
+.wcard{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px 12px;border-radius:22px}
+.wnow{justify-content:center}
+.wnow{gap:6px}.wicon{font-size:42px}.wtemp{font-size:32px}.wtemp small{font-size:12px}
+.wtimes{flex-wrap:nowrap;gap:5px}
+.wt{min-width:0;flex:1;padding:4px 4px;border-radius:12px}.wt b{font-size:10px}.wt .e{font-size:20px}.wt .d{font-size:14px}
+.wclothes{min-width:0}
+.wclothes .h{font-size:16px}
+.chip{font-size:14px;padding:3px 10px 3px 4px}.chip .ci{width:26px;height:26px;font-size:22px}.chip svg{width:24px;height:24px}
+.wtip{font-size:13px}.wsrc{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="sun"></div>
+<div class="cloud c1"></div><div class="cloud c2"></div>
+<svg class="hills" viewBox="0 0 1200 120" preserveAspectRatio="none">
+<path d="M0 70 Q150 10 300 60 T600 55 T900 50 T1200 60 V120 H0Z" fill="#9be38b"/>
+<path d="M0 95 Q200 50 420 90 T820 85 T1200 80 V120 H0Z" fill="#6fd06a"/>
+</svg>
+<header>
+<h1>☀️ Morgonuppdraget ☀️</h1>
+<div class="sub" id="today"></div>
+</header>
+<section class="weather" id="weather"></section>
+<nav class="tabs" id="tabs"></nav>
+<main id="players"></main>
+<div class="grown">
+<button class="gbtn" id="soundBtn">🔊 Ljud på</button>
+<button class="gbtn" id="resetBtn"><span class="prog"></span><span style="position:relative">↺ Håll inne: börja om</span></button>
+</div>
+<div class="party" id="party">
+<div class="card">
+<div class="big" id="partyBig">🏆</div>
+<h2 id="partyTitle">Bra jobbat!</h2>
+<p id="partyText">Du är redo för förskolan!</p>
+<div class="starsrow" id="partyStars"></div>
+<button id="partyClose">Jippie! 🎉</button>
+</div>
+</div>
+<div class="picker" id="picker">
+<div class="box">
+<h3 id="pickerTitle">Välj ditt djur!</h3>
+<div class="grid" id="pickerGrid"></div>
+</div>
+</div>
+<canvas id="fx"></canvas>
+<script>
+/* ---------- data ---------- */
+const TASKS = [
+{id:'toa',   icon:'🚽', label:'Gått på toa',      say:'Gå på toaletten'},
+{id:'frukost',icon:'🥣', label:'Ätit frukost',     say:'Ät frukost'},
+{id:'tander',icon:'🪥', label:'Borstat tänderna', say:'Borsta tänderna'},
+{id:'klader',icon:'👕', label:'Klätt på mig',     say:'Klä på dig'},
+{id:'ute',   icon:'🧥', label:'Ytterkläder på',   say:'Ta på ytterkläderna'}
+];
+const PLAYERS = [
+{id:'harald', name:'Harald', cls:'p-harald', animal:'🪸'},
+{id:'klas',   name:'Klas',   cls:'p-klas',   animal:'🦀'}
+];
+const ANIMALS = ['🪸','🦀','🦁','🐻','🐯','🐶','🐱','🐰','🦊','🐼','🐸','🐵','🦄','🐲','🦖','🐧','🐨','🚀','🚗','🚒','🦕','🐙'];
+const PRAISE = ['Superbra!','Wow!','Snyggt!','Toppen!','Kanon!','Jättebra!','Stjärnklart!'];
+/* ---------- väder (uppdateras automatiskt varje kväll) ---------- */
+const LAT=59.3667, LON=18.15, PLACE='Lidingö';
+let WEATHER=null; // {date, place, updated, source, hours:[{h,t,f,p,type,icon}]}
+const WKEY='morgonuppdraget-weather';
+try{ WEATHER=JSON.parse(localStorage.getItem(WKEY))||null; }catch(e){}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function codeIcon(c){
+if(c<=1) return 'sun'; if(c===2) return 'partly'; if(c===3) return 'cloud'; if(c===45||c===48) return 'fog';
+if([56,57,66,67].includes(c)) return 'sleet'; if((c>=71&&c<=77)||c===85||c===86) return 'snow';
+if(c>=95) return 'thunder'; if((c>=51&&c<=65)||(c>=80&&c<=82)) return 'rain'; return 'cloud';
+}
+async function fetchWeather(){
+const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`+
+`&hourly=temperature_2m,apparent_temperature,precipitation,rain,showers,snowfall,weather_code&timezone=Europe%2FStockholm&forecast_days=2`;
+try{
+const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(r.status);
+const j=await r.json(), H=j.hourly, days={};
+H.time.forEach((t,i)=>{
+const [d,hh]=t.split('T'), h=parseInt(hh,10); if(h<6||h>17) return;
+const snow=H.snowfall[i]||0, rain=(H.rain[i]||0)+(H.showers[i]||0), icon=codeIcon(H.weather_code[i]);
+const type=snow>0&&rain>0?'sleet':snow>0?'snow':rain>0?(icon==='sleet'?'sleet':'rain'):'';
+(days[d]=days[d]||[]).push({h,t:H.temperature_2m[i],f:H.apparent_temperature[i],p:H.precipitation[i]||0,type,icon});
+});
+const now=new Date();
+WEATHER={days,place:PLACE,source:'Open-Meteo',updated:now.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})+' '+now.toLocaleDateString('sv-SE',{day:'numeric',month:'short'})};
+try{localStorage.setItem(WKEY,JSON.stringify(WEATHER));}catch(e){}
+renderWeather(); render();
+}catch(e){ /* offline: behåll senast sparade prognos */ }
+}
+const WICON={sun:'☀️',partly:'⛅',cloud:'☁️',rain:'🌧️',snow:'🌨️',sleet:'🌨️',fog:'🌫️',thunder:'⛈️'};
+const SVG={
+beanie:'<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="5" fill="#ff5fa2"/><path d="M6 28 Q6 10 20 10 Q34 10 34 28Z" fill="#ff8a3d"/><rect x="4" y="26" width="32" height="9" rx="4" fill="#ffd23f"/><path d="M9 28v5M14 28v5M19 28v5M24 28v5M29 28v5" stroke="#e0a800" stroke-width="2"/></svg>',
+overall:'<svg viewBox="0 0 40 40"><path d="M12 4h16l6 10v6l-4 1v-6l-1 0v23h-8V22h-2v16h-8V15h-1v6l-4-1v-6Z" fill="#3a7bff"/><rect x="15" y="4" width="10" height="5" rx="2" fill="#ffd23f"/><path d="M20 9v14" stroke="#fff" stroke-width="1.5"/></svg>',
+rainsuit:'<svg viewBox="0 0 40 40"><path d="M14 3h12l8 9v7l-4 1v-5h-1v12H11V15h-1v5l-4-1v-7Z" fill="#ffd23f"/><path d="M11 27h18v11h-7V31h-4v7h-7Z" fill="#ffb703"/><circle cx="20" cy="5" r="3" fill="#ff8a3d"/><path d="M20 8v18" stroke="#e0a800" stroke-width="1.5"/></svg>',
+boots:'<svg viewBox="0 0 40 40"><path d="M8 6h10v20h12q6 0 6 6v4H8Z" fill="#1fb57a"/><rect x="8" y="34" width="28" height="3" rx="1.5" fill="#148a5b"/><rect x="8" y="6" width="10" height="4" fill="#7be07b"/></svg>'
+};
+const ITEMS={
+overall:{i:SVG.overall,l:'Vinteroverall'},
+rainsuit:{i:SVG.rainsuit,l:'Regnställ'},
+rainsuitF:{i:SVG.rainsuit,l:'Fodrat regnställ'},
+jacket:{i:'🧥',l:'Jacka'},
+thinjacket:{i:'🧥',l:'Tunn jacka'},
+sweater:{i:'👕',l:'Tröja räcker'},
+beanie:{i:SVG.beanie,l:'Mössa'},
+thinbeanie:{i:SVG.beanie,l:'Tunn mössa'},
+mittens:{i:'🧤',l:'Vantar'},
+scarf:{i:'🧣',l:'Tub/halsduk'},
+winterboots:{i:'🥾',l:'Vinterkängor'},
+boots:{i:SVG.boots,l:'Stövlar'},
+bootsF:{i:SVG.boots,l:'Fodrade stövlar'},
+shoes:{i:'👟',l:'Skor'},
+cap:{i:'🧢',l:'Keps'},
+sun:{i:'🧴',l:'Solkräm'},
+wool:{i:'🧦',l:'Ullunderställ'}
+};
+function weatherToday(){
+if(!WEATHER||!WEATHER.days) return null;
+const now=new Date(); let d=new Date(now), tomorrow=false;
+if(now.getHours()>=17){ d.setDate(d.getDate()+1); tomorrow=true; }
+const hours=WEATHER.days[isoDate(d)]; if(!hours||!hours.length) return null;
+return {hours,tomorrow,place:WEATHER.place,source:WEATHER.source,updated:WEATHER.updated};
+}
+function recommend(w){
+const hs=w.hours.filter(h=>h.h>=7&&h.h<=16); if(!hs.length) return null;
+const feel=h=>(typeof h.f==='number'?h.f:h.t);
+const cold=Math.min(...hs.map(feel)), warm=Math.max(...hs.map(h=>h.t));
+const rainMm=hs.filter(h=>h.type==='rain'||h.type==='sleet').reduce((a,h)=>a+(h.p||0),0);
+const rainy=rainMm>=0.5||hs.some(h=>(h.type==='rain'||h.type==='sleet')&&h.p>=0.3);
+const snowy=hs.some(h=>h.type==='snow'&&h.p>0);
+const sunny=hs.filter(h=>h.icon==='sun').length>=3;
+const it=[]; const tips=[];
+if(cold<=-5){ it.push('overall','beanie','mittens','scarf','winterboots','wool'); }
+else if(cold<=3){
+if(rainy&&!snowy){ it.push('rainsuitF','beanie','mittens','scarf','bootsF'); tips.push('Packa extra vantar – de blir blöta.'); }
+else it.push('overall','beanie','mittens','scarf','winterboots');
+}
+else if(cold<=8){
+if(rainy){ it.push('rainsuitF','thinbeanie','mittens','bootsF'); tips.push('Packa extra vantar – de blir blöta.'); }
+else it.push('jacket','thinbeanie','mittens','shoes');
+}
+else if(cold<=13){
+if(rainy) it.push('rainsuit','thinbeanie','boots'); else it.push('thinjacket','shoes');
+}
+else{
+if(rainy) it.push('rainsuit','boots'); else it.push('sweater','shoes');
+if(sunny&&warm>=18) it.push('cap','sun');
+}
+if(rainy){ const first=hs.find(h=>(h.type==='rain'||h.type==='sleet')&&h.p>0); if(first&&first.h>=11) tips.unshift('Regnet kommer först framåt '+first.h+'-tiden.'); }
+return {items:it,tips,cold,rainy,snowy};
+}
+function renderWeather(){
+const box=document.getElementById('weather'); const w=weatherToday();
+if(!w){ box.innerHTML='<div class="wcard"><div class="wicon">🌤️</div><div class="wclothes"><div class="h">Hämtar väderprognosen…</div><div class="wtip">Saknas internet? Titta ut genom fönstret och välj kläder själva idag!</div></div></div>'; WEAR=null; return; }
+const rec=recommend(w); WEAR=rec;
+const m=w.hours.find(h=>h.h===7)||w.hours[0];
+const pick=[7,10,13,16].map(h=>w.hours.find(x=>x.h===h)).filter(Boolean);
+const lbl={7:'Morgon',10:'Förmiddag',13:'Lunch',16:'Hämtning'};
+box.innerHTML=`<div class="wcard" id="wcard">
+<div class="wnow"><div class="wicon">${WICON[m.icon]||'🌤️'}</div>
+<div class="wtemp">${Math.round(m.t)}°<small>${w.place} ${w.tomorrow?'i morgon ':''}kl ${m.h}</small></div></div>
+<div class="wtimes">${pick.map(h=>`<div class="wt"><b>${lbl[h.h]||h.h}</b><div class="e">${WICON[h.icon]||''}</div><div class="d">${Math.round(h.t)}°</div></div>`).join('')}</div>
+${rec?`<div class="wclothes"><div class="h">👀 ${w.tomorrow?'I morgon ska vi ha på oss:':'Det här ska vi ha på oss idag:'}</div>
+<div class="chips">${rec.items.map(k=>`<span class="chip"><span class="ci">${ITEMS[k].i}</span>${ITEMS[k].l}</span>`).join('')}</div>
+${rec.tips.length?`<div class="wtip">💡 ${rec.tips.join(' ')}</div>`:''}
+<div class="wsrc">Prognos från ${w.source}, uppdaterad ${w.updated}</div></div>`:''}
+</div>`;
+document.getElementById('wcard').addEventListener('click',()=>{
+if(!rec) return;
+const r=Math.round(m.t);
+const wx={rain:'regn',snow:'snö',sleet:'snöblandat regn',sun:'sol',partly:'lite sol',cloud:'moln',fog:'dimma',thunder:'åska'}[m.icon]||'';
+say(`${w.tomorrow?'I morgon':'Idag'} är det ${r} grader${wx?' och '+wx:''}. Ta på dig ${rec.items.map(k=>ITEMS[k].l.toLowerCase()).join(', ').replace(/, ([^,]*)$/,' och $1')}.`);
+});
+}
+let WEAR=null;
+/* ---------- lagring (fungerar utan också) ---------- */
+const KEY='morgonuppdraget-v1';
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+let state;
+function load(){
+let s=null; try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+if(!s) s={date:todayStr(),done:{},stars:{},animal:{},sound:true,celebrated:{}};
+if(s.date!==todayStr()){s.date=todayStr();s.done={};s.celebrated={};}
+PLAYERS.forEach(p=>{s.done[p.id]=s.done[p.id]||{};s.stars[p.id]=s.stars[p.id]||0;s.animal[p.id]=s.animal[p.id]||p.animal;});
+if(!s.v2){ if(s.animal.harald==='🦁') s.animal.harald='🪸'; if(s.animal.klas==='🐻') s.animal.klas='🦀'; s.v2=true; }
+state=s;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+load();
+/* ---------- ljud ---------- */
+let ac=null;
+function audio(){ if(!state.sound) return null; try{ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume(); }catch(e){ac=null} return ac; }
+function tone(freq,start,dur,type='sine',vol=.25){
+const a=audio(); if(!a) return;
+const o=a.createOscillator(),g=a.createGain(); o.type=type; o.frequency.setValueAtTime(freq,a.currentTime+start);
+g.gain.setValueAtTime(0,a.currentTime+start); g.gain.linearRampToValueAtTime(vol,a.currentTime+start+.02);
+g.gain.exponentialRampToValueAtTime(.001,a.currentTime+start+dur);
+o.connect(g).connect(a.destination); o.start(a.currentTime+start); o.stop(a.currentTime+start+dur+.05);
+}
+function sndCheck(n){ const base=[523,587,659,784,880][n%5]; tone(base,0,.18,'triangle',.3); tone(base*1.5,.08,.25,'sine',.22); tone(base*2,.16,.35,'sine',.15); }
+function sndUncheck(){ tone(400,0,.15,'triangle',.2); tone(300,.08,.2,'triangle',.15); }
+function sndFanfare(){ [523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*.13,i===5?.8:.2,'square',.12)); [523,659,784].forEach((f,i)=>tone(f,.8,.9,'triangle',.12)); }
+function sndBoom(){
+const a=audio(); if(!a) return;
+const len=a.sampleRate*.5, buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0);
+for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+const s=a.createBufferSource(), g=a.createGain(), f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900+Math.random()*800;
+g.gain.value=.35; s.buffer=buf; s.connect(f).connect(g).connect(a.destination); s.start();
+}
+function say(text){
+if(!state.sound) return;
+try{ const u=new SpeechSynthesisUtterance(text); u.lang='sv-SE'; u.rate=.95; u.pitch=1.15;
+const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith('sv')); if(v) u.voice=v;
+speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){}
+}
+/* ---------- rendering ---------- */
+const main=document.getElementById('players');
+let activeTab=(()=>{try{return localStorage.getItem('morgonuppdraget-tab')||'harald'}catch(e){return 'harald'}})();
+function renderTabs(){
+document.getElementById('tabs').innerHTML=PLAYERS.map(p=>`<button class="tab t-${p.id} ${p.id===activeTab?'active':''}" data-p="${p.id}">
+<span class="ta">${state.animal[p.id]}</span>${p.name}${count(p.id)===TASKS.length?' <span class="tdone">⭐</span>':''}</button>`).join('');
+document.querySelectorAll('.player').forEach(el=>el.classList.toggle('active',el.id==='pl-'+activeTab));
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+const b=e.target.closest('.tab'); if(!b) return; activeTab=b.dataset.p;
+try{localStorage.setItem('morgonuppdraget-tab',activeTab)}catch(e){}
+renderTabs(); tone(700,0,.1,'triangle',.2);
+});
+function render(){
+main.innerHTML='';
+PLAYERS.forEach(p=>{
+const el=document.createElement('section'); el.className='player '+p.cls; el.id='pl-'+p.id;
+el.innerHTML=`
+<div class="phead">
+<div class="avatar" data-p="${p.id}" title="Byt djur">${state.animal[p.id]}</div>
+<div><div class="pname">${p.name}</div>
+<div class="stars-total">⭐ <span class="st">${state.stars[p.id]}</span></div></div>
+</div>
+<div class="road">
+<div class="fill"></div><div class="lane"></div>
+${TASKS.map((t,i)=>`<div class="dot" style="left:calc(6px + (100% - 104px) * ${(i+1)/TASKS.length} + 22px)"></div>`).join('')}
+<div class="runner">${state.animal[p.id]}</div>
+<div class="goal">🏫</div>
+</div>
+<div class="tasks">
+${TASKS.map(t=>`<button class="task" data-p="${p.id}" data-t="${t.id}">
+<span class="icon">${t.icon}</span><span class="lblwrap"><span class="label">${t.label}</span>${t.id==='ute'&&WEAR?`<span class="wear">${WEAR.items.map(k=>ITEMS[k].i).join('')}</span>`:''}</span><span class="check"></span></button>`).join('')}
+</div>
+<div class="finish">🎉 Klar för förskolan! 🎉</div>`;
+main.appendChild(el);
+update(p.id,false);
+});
+renderTabs();
+}
+function count(pid){return TASKS.filter(t=>state.done[pid][t.id]).length;}
+function update(pid){
+const el=document.getElementById('pl-'+pid); const n=count(pid), frac=n/TASKS.length;
+el.querySelectorAll('.task').forEach(b=>{
+const d=!!state.done[pid][b.dataset.t]; b.classList.toggle('done',d);
+b.querySelector('.check').textContent=d?'⭐':''; b.classList.remove('hint');
+});
+const next=el.querySelector('.task:not(.done)'); if(next) next.classList.add('hint');
+el.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<n));
+el.querySelector('.fill').style.width=`calc((100% - 12px) * ${frac})`;
+el.querySelector('.runner').style.left=`calc(6px + (100% - 104px) * ${frac})`;
+el.querySelector('.st').textContent=state.stars[pid];
+el.classList.toggle('done',n===TASKS.length);
+if(document.getElementById('tabs').children.length) renderTabs();
+}
+document.getElementById('today').textContent=
+new Date().toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'}).replace(/^./,c=>c.toUpperCase())+' – klara, färdiga, gå!';
+main.addEventListener('click',e=>{
+const av=e.target.closest('.avatar'); if(av){openPicker(av.dataset.p);return;}
+const b=e.target.closest('.task'); if(!b) return;
+const pid=b.dataset.p, tid=b.dataset.t, task=TASKS.find(t=>t.id===tid);
+const wasDone=!!state.done[pid][tid];
+if(wasDone){ delete state.done[pid][tid]; state.stars[pid]=Math.max(0,state.stars[pid]-1); sndUncheck(); }
+else{
+state.done[pid][tid]=true; state.stars[pid]++;
+const r=b.querySelector('.check').getBoundingClientRect();
+burst(r.left+r.width/2,r.top+r.height/2,26);
+sndCheck(count(pid)-1);
+const n=count(pid);
+if(n<TASKS.length) say(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+}
+save(); update(pid);
+if(!wasDone && count(pid)===TASKS.length && !state.celebrated[pid]){
+state.celebrated[pid]=true; save();
+setTimeout(()=>celebrate(pid),450);
+}
+});
+/* ---------- djurväljare ---------- */
+let pickFor=null;
+const picker=document.getElementById('picker');
+document.getElementById('pickerGrid').innerHTML=ANIMALS.map(a=>`<button>${a}</button>`).join('');
+function openPicker(pid){pickFor=pid;document.getElementById('pickerTitle').textContent=PLAYERS.find(p=>p.id===pid).name+', välj ditt djur!';picker.classList.add('show');tone(660,0,.12,'triangle',.2);}
+picker.addEventListener('click',e=>{
+const b=e.target.closest('button');
+if(b){state.animal[pickFor]=b.textContent;save();render();tone(880,0,.15,'triangle',.25);}
+picker.classList.remove('show');
+});
+/* ---------- firande ---------- */
+const party=document.getElementById('party');
+let fireworksOn=false;
+function celebrate(pid){
+const p=PLAYERS.find(x=>x.id===pid);
+const both=PLAYERS.every(x=>count(x.id)===TASKS.length);
+document.getElementById('partyBig').textContent=both?'🏆':state.animal[pid];
+document.getElementById('partyTitle').textContent=both?'Båda är klara!':'Bra jobbat '+p.name+'!';
+document.getElementById('partyText').textContent=both?'Harald och Klas är redo för förskolan!':'Du är redo för förskolan!';
+document.getElementById('partyStars').innerHTML=TASKS.map((t,i)=>`<span style="animation-delay:${.3+i*.15}s">⭐</span>`).join('');
+party.classList.add('show');
+sndFanfare(); say(both?'Hurra! Harald och Klas är klara för förskolan!':'Hurra '+p.name+'! Du är klar för förskolan!');
+fireworksOn=true; confetti(160);
+let k=0; const iv=setInterval(()=>{ if(!fireworksOn||k++>(both?22:12)){clearInterval(iv);return;} launch(); },380);
+}
+document.getElementById('partyClose').addEventListener('click',()=>{party.classList.remove('show');fireworksOn=false;tone(784,0,.15,'triangle',.25);});
+/* ---------- partiklar ---------- */
+const cv=document.getElementById('fx'), cx=cv.getContext('2d');
+let W,H,DPR; function size(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);}
+size(); addEventListener('resize',size);
+const parts=[], rockets=[];
+const COLORS=['#ffd23f','#ff5fa2','#3ec5ff','#7bed6f','#b388ff','#ff8a3d','#ffffff'];
+function rnd(a,b){return a+Math.random()*(b-a);}
+function star(x,y,r,rot){cx.beginPath();for(let i=0;i<10;i++){const rr=i%2?r*.45:r,a=rot+i*Math.PI/5;cx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}cx.closePath();cx.fill();}
+function burst(x,y,n){
+for(let i=0;i<n;i++){const a=rnd(0,Math.PI*2),s=rnd(2,7);
+parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,g:.18,life:rnd(40,70),max:70,size:rnd(5,11),c:COLORS[i%COLORS.length],kind:i%3?'star':'dot',rot:rnd(0,6),vr:rnd(-.2,.2)});}
+kick();
+}
+function confetti(n){
+for(let i=0;i<n;i++) parts.push({x:rnd(0,W),y:rnd(-H*.6,-10),vx:rnd(-1.5,1.5),vy:rnd(2,5),g:.04,life:rnd(160,260),max:260,size:rnd(7,13),c:COLORS[i%COLORS.length],kind:'conf',rot:rnd(0,6),vr:rnd(-.15,.15),sway:rnd(0,6)});
+kick();
+}
+function launch(){
+rockets.push({x:rnd(W*.15,W*.85),y:H+10,vx:rnd(-1,1),vy:rnd(-15,-11),c:COLORS[Math.floor(rnd(0,6))]}); kick();
+}
+function explode(r){
+sndBoom();
+const n=70, ring=Math.random()<.4;
+for(let i=0;i<n;i++){const a=i/n*Math.PI*2+rnd(-.05,.05),s=ring?6:rnd(1,7.5);
+parts.push({x:r.x,y:r.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:.07,life:rnd(55,90),max:90,size:rnd(2.5,4.5),c:Math.random()<.7?r.c:'#fff',kind:'spark',trail:[]});}
+for(let i=0;i<10;i++){const a=rnd(0,6.3),s=rnd(1,4);parts.push({x:r.x,y:r.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:.05,life:90,max:90,size:9,c:'#ffd23f',kind:'star',rot:0,vr:.1});}
+}
+let running=false;
+function kick(){if(!running){running=true;requestAnimationFrame(tick);}}
+function tick(){
+cx.clearRect(0,0,W,H);
+for(let i=rockets.length-1;i>=0;i--){const r=rockets[i]; r.x+=r.vx; r.y+=r.vy; r.vy+=.22;
+cx.fillStyle=r.c; cx.beginPath(); cx.arc(r.x,r.y,4,0,7); cx.fill();
+cx.fillStyle='rgba(255,230,150,.6)'; cx.beginPath(); cx.arc(r.x-r.vx,r.y-r.vy*1.2,3,0,7); cx.fill();
+if(r.vy>-1.5){explode(r);rockets.splice(i,1);}}
+for(let i=parts.length-1;i>=0;i--){const p=parts[i];
+if(p.kind==='spark'){p.trail.push([p.x,p.y]); if(p.trail.length>5)p.trail.shift(); p.vx*=.97; p.vy*=.97;}
+p.x+=p.vx + (p.kind==='conf'?Math.sin((p.life+p.sway)*.08)*1.2:0); p.y+=p.vy; p.vy+=p.g; p.life--;
+if(p.rot!==undefined)p.rot+=p.vr;
+const al=Math.max(0,Math.min(1,p.life/(p.max*.5)));
+cx.globalAlpha=al; cx.fillStyle=p.c;
+if(p.kind==='star'){star(p.x,p.y,p.size,p.rot);}
+else if(p.kind==='conf'){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2*Math.abs(Math.cos(p.life*.1))+1);cx.restore();}
+else if(p.kind==='spark'){cx.strokeStyle=p.c;cx.lineWidth=p.size*.6;cx.beginPath();p.trail.forEach((t,j)=>j?cx.lineTo(t[0],t[1]):cx.moveTo(t[0],t[1]));cx.lineTo(p.x,p.y);cx.stroke();
+if(Math.random()<.3){cx.fillStyle='#fff';cx.fillRect(p.x,p.y,2,2);}}
+else{cx.beginPath();cx.arc(p.x,p.y,p.size/2,0,7);cx.fill();}
+if(p.life<=0||p.y>H+40)parts.splice(i,1);
+}
+cx.globalAlpha=1;
+if(parts.length||rockets.length) requestAnimationFrame(tick); else {running=false;cx.clearRect(0,0,W,H);}
+}
+/* ---------- föräldrakontroller ---------- */
+const soundBtn=document.getElementById('soundBtn');
+function soundLabel(){soundBtn.textContent=state.sound?'🔊 Ljud på':'🔇 Ljud av';}
+soundLabel();
+soundBtn.addEventListener('click',()=>{state.sound=!state.sound;save();soundLabel();if(state.sound)tone(660,0,.15,'triangle',.25);});
+const resetBtn=document.getElementById('resetBtn'); let holdT=null;
+function startHold(e){e.preventDefault();resetBtn.classList.add('holding');holdT=setTimeout(()=>{
+PLAYERS.forEach(p=>{state.done[p.id]={};});state.celebrated={};save();render();resetBtn.classList.remove('holding');tone(440,0,.2,'triangle',.2);
+},1500);}
+function endHold(){clearTimeout(holdT);resetBtn.classList.remove('holding');}
+resetBtn.addEventListener('pointerdown',startHold);
+['pointerup','pointerleave','pointercancel'].forEach(ev=>resetBtn.addEventListener(ev,endHold));
+/* ny dag medan sidan står öppen */
+setInterval(()=>{ if(state.date!==todayStr()){load();renderWeather();render();} },60000);
+renderWeather();
+render();
+fetchWeather();
+setInterval(fetchWeather,30*60*1000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ if(state.date!==todayStr()){load();render();} fetchWeather(); } });
+if('serviceWorker' in navigator){ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
