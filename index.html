@@ -139,10 +139,12 @@ padding:12px 20px;border:5px solid #fff;box-shadow:0 8px 0 rgba(58,134,200,.35),
 .task .wear{display:flex;gap:2px;flex-wrap:wrap;margin-top:4px;font-size:24px;line-height:1}
 .task .wear svg{width:26px;height:26px}
 .task .lblwrap{flex:1;display:flex;flex-direction:column}
+.task .icon svg{width:56px;height:56px;display:block;margin:0 auto}
 /* föräldraknappar */
 .grown{position:fixed;z-index:5;top:10px;left:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;opacity:.75}
 .gbtn{font-family:inherit;font-weight:600;font-size:13px;border:none;border-radius:99px;padding:7px 12px;
 background:rgba(255,255,255,.85);color:#2b2350;box-shadow:0 4px 0 rgba(0,0,0,.12);cursor:pointer;position:relative;overflow:hidden}
+.gbtn.on{background:#d6f5e0;box-shadow:0 4px 0 #8fd4a8}
 .gbtn .prog{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,100,100,.35)}
 .gbtn.holding .prog{width:100%;transition:width 1.5s linear}
 /* firande */
@@ -171,7 +173,7 @@ background:#ffe066;color:#2b2350;box-shadow:0 7px 0 #d9a400;cursor:pointer}
 .picker .grid button:active{transform:scale(.9)}
 /* telefon: sist så att det vinner över reglerna ovan */
 @media (max-width:720px){
-.grown{position:static;transform:none;flex-direction:row;justify-content:center;margin:0 0 18px;opacity:.85}
+.grown{position:static;transform:none;flex-direction:row;flex-wrap:wrap;justify-content:center;margin:0 0 18px;opacity:.85}
 h1{font-size:26px;white-space:nowrap}
 .sub{font-size:13px}
 .wtemp small{white-space:nowrap}
@@ -203,6 +205,7 @@ h1{font-size:26px;white-space:nowrap}
 <main id="players"></main>
 <div class="grown">
 <button class="gbtn" id="soundBtn">🔊 Ljud på</button>
+<button class="gbtn" id="inhalerBtn">💨 Klas inhalator: av</button>
 <button class="gbtn" id="resetBtn"><span class="prog"></span><span style="position:relative">↺ Håll inne: börja om</span></button>
 </div>
 <div class="party" id="party">
@@ -227,9 +230,11 @@ const TASKS = [
 {id:'toa',   icon:'🚽', label:'Gått på toa',      say:'Gå på toaletten'},
 {id:'frukost',icon:'🥣', label:'Ätit frukost',     say:'Ät frukost'},
 {id:'tander',icon:'🪥', label:'Borstat tänderna', say:'Borsta tänderna'},
+{id:'inhalator',icon:'<svg viewBox="0 0 64 64"><rect x="22" y="4" width="20" height="34" rx="7" fill="#ff8a3d"/><rect x="26" y="8" width="12" height="6" rx="3" fill="#ffd23f"/><path d="M18 34h28v14a6 6 0 0 1-6 6H24a6 6 0 0 1-6-6Z" fill="#3a7bff"/><rect x="8" y="42" width="16" height="12" rx="4" fill="#3a7bff"/><circle cx="6" cy="40" r="3" fill="#bfe6ff"/><circle cx="3" cy="48" r="2.5" fill="#bfe6ff"/><circle cx="6" cy="56" r="2" fill="#bfe6ff"/></svg>', label:'Tagit inhalatorn', say:'Ta inhalatorn', only:['klas']},
 {id:'klader',icon:'👕', label:'Klätt på mig',     say:'Klä på dig'},
 {id:'ute',   icon:'🧥', label:'Ytterkläder på',   say:'Ta på ytterkläderna'}
 ];
+function tasksFor(pid){return TASKS.filter(t=>(!t.only||t.only.includes(pid))&&(t.id!=='inhalator'||(state&&state.inhaler)));}
 const PLAYERS = [
 {id:'harald', name:'Harald', cls:'p-harald', animal:'🪸'},
 {id:'klas',   name:'Klas',   cls:'p-klas',   animal:'🦀'}
@@ -395,7 +400,7 @@ const main=document.getElementById('players');
 let activeTab=(()=>{try{return localStorage.getItem('morgonuppdraget-tab')||'harald'}catch(e){return 'harald'}})();
 function renderTabs(){
 document.getElementById('tabs').innerHTML=PLAYERS.map(p=>`<button class="tab t-${p.id} ${p.id===activeTab?'active':''}" data-p="${p.id}">
-<span class="ta">${state.animal[p.id]}</span>${p.name}${count(p.id)===TASKS.length?' <span class="tdone">⭐</span>':''}</button>`).join('');
+<span class="ta">${state.animal[p.id]}</span>${p.name}${count(p.id)===tasksFor(p.id).length?' <span class="tdone">⭐</span>':''}</button>`).join('');
 document.querySelectorAll('.player').forEach(el=>el.classList.toggle('active',el.id==='pl-'+activeTab));
 }
 document.getElementById('tabs').addEventListener('click',e=>{
@@ -415,12 +420,12 @@ el.innerHTML=`
 </div>
 <div class="road">
 <div class="fill"></div><div class="lane"></div>
-${TASKS.map((t,i)=>`<div class="dot" style="left:calc(6px + (100% - 104px) * ${(i+1)/TASKS.length} + 22px)"></div>`).join('')}
+${tasksFor(p.id).map((t,i,a)=>`<div class="dot" style="left:calc(6px + (100% - 104px) * ${(i+1)/a.length} + 22px)"></div>`).join('')}
 <div class="runner">${state.animal[p.id]}</div>
 <div class="goal">🏫</div>
 </div>
 <div class="tasks">
-${TASKS.map(t=>`<button class="task" data-p="${p.id}" data-t="${t.id}">
+${tasksFor(p.id).map(t=>`<button class="task" data-p="${p.id}" data-t="${t.id}">
 <span class="icon">${t.icon}</span><span class="lblwrap"><span class="label">${t.label}</span>${t.id==='ute'&&WEAR?`<span class="wear">${WEAR.items.map(k=>ITEMS[k].i).join('')}</span>`:''}</span><span class="check"></span></button>`).join('')}
 </div>
 <div class="finish">🎉 Klar för förskolan! 🎉</div>`;
@@ -429,9 +434,9 @@ update(p.id,false);
 });
 renderTabs();
 }
-function count(pid){return TASKS.filter(t=>state.done[pid][t.id]).length;}
+function count(pid){return tasksFor(pid).filter(t=>state.done[pid][t.id]).length;}
 function update(pid){
-const el=document.getElementById('pl-'+pid); const n=count(pid), frac=n/TASKS.length;
+const el=document.getElementById('pl-'+pid); const n=count(pid), frac=n/tasksFor(pid).length;
 el.querySelectorAll('.task').forEach(b=>{
 const d=!!state.done[pid][b.dataset.t]; b.classList.toggle('done',d);
 b.querySelector('.check').textContent=d?'⭐':''; b.classList.remove('hint');
@@ -441,7 +446,7 @@ el.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<n));
 el.querySelector('.fill').style.width=`calc((100% - 12px) * ${frac})`;
 el.querySelector('.runner').style.left=`calc(6px + (100% - 104px) * ${frac})`;
 el.querySelector('.st').textContent=state.stars[pid];
-el.classList.toggle('done',n===TASKS.length);
+el.classList.toggle('done',n===tasksFor(pid).length);
 if(document.getElementById('tabs').children.length) renderTabs();
 }
 document.getElementById('today').textContent=
@@ -458,10 +463,10 @@ const r=b.querySelector('.check').getBoundingClientRect();
 burst(r.left+r.width/2,r.top+r.height/2,26);
 sndCheck(count(pid)-1);
 const n=count(pid);
-if(n<TASKS.length) say(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+if(n<tasksFor(pid).length) say(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
 }
 save(); update(pid);
-if(!wasDone && count(pid)===TASKS.length && !state.celebrated[pid]){
+if(!wasDone && count(pid)===tasksFor(pid).length && !state.celebrated[pid]){
 state.celebrated[pid]=true; save();
 setTimeout(()=>celebrate(pid),450);
 }
@@ -481,11 +486,11 @@ const party=document.getElementById('party');
 let fireworksOn=false;
 function celebrate(pid){
 const p=PLAYERS.find(x=>x.id===pid);
-const both=PLAYERS.every(x=>count(x.id)===TASKS.length);
+const both=PLAYERS.every(x=>count(x.id)===tasksFor(x.id).length);
 document.getElementById('partyBig').textContent=both?'🏆':state.animal[pid];
 document.getElementById('partyTitle').textContent=both?'Båda är klara!':'Bra jobbat '+p.name+'!';
 document.getElementById('partyText').textContent=both?'Harald och Klas är redo för förskolan!':'Du är redo för förskolan!';
-document.getElementById('partyStars').innerHTML=TASKS.map((t,i)=>`<span style="animation-delay:${.3+i*.15}s">⭐</span>`).join('');
+document.getElementById('partyStars').innerHTML=tasksFor(pid).map((t,i)=>`<span style="animation-delay:${.3+i*.15}s">⭐</span>`).join('');
 party.classList.add('show');
 sndFanfare(); say(both?'Hurra! Harald och Klas är klara för förskolan!':'Hurra '+p.name+'! Du är klar för förskolan!');
 fireworksOn=true; confetti(160);
@@ -547,6 +552,10 @@ if(parts.length||rockets.length) requestAnimationFrame(tick); else {running=fals
 const soundBtn=document.getElementById('soundBtn');
 function soundLabel(){soundBtn.textContent=state.sound?'🔊 Ljud på':'🔇 Ljud av';}
 soundLabel();
+const inhalerBtn=document.getElementById('inhalerBtn');
+function inhalerLabel(){inhalerBtn.textContent=state.inhaler?'💨 Klas inhalator: på':'💨 Klas inhalator: av';inhalerBtn.classList.toggle('on',!!state.inhaler);}
+inhalerLabel();
+inhalerBtn.addEventListener('click',()=>{state.inhaler=!state.inhaler;save();inhalerLabel();render();tone(state.inhaler?660:440,0,.15,'triangle',.25);});
 soundBtn.addEventListener('click',()=>{state.sound=!state.sound;save();soundLabel();if(state.sound)tone(660,0,.15,'triangle',.25);});
 const resetBtn=document.getElementById('resetBtn'); let holdT=null;
 function startHold(e){e.preventDefault();resetBtn.classList.add('holding');holdT=setTimeout(()=>{
