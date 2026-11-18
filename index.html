@@ -141,7 +141,7 @@ padding:12px 20px;border:5px solid #fff;box-shadow:0 8px 0 rgba(58,134,200,.35),
 .task .lblwrap{flex:1;display:flex;flex-direction:column}
 .task .icon svg{width:56px;height:56px;display:block;margin:0 auto}
 /* föräldraknappar */
-.grown{position:fixed;z-index:5;top:10px;left:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;opacity:.75}
+.grown{position:relative;z-index:5;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto 24px;max-width:900px;padding:0 12px;opacity:.85}
 .gbtn{font-family:inherit;font-weight:600;font-size:13px;border:none;border-radius:99px;padding:7px 12px;
 background:rgba(255,255,255,.85);color:#2b2350;box-shadow:0 4px 0 rgba(0,0,0,.12);cursor:pointer;position:relative;overflow:hidden}
 .gbtn.on{background:#d6f5e0;box-shadow:0 4px 0 #8fd4a8}
@@ -187,18 +187,49 @@ h1{font-size:26px;white-space:nowrap}
 .chip{font-size:14px;padding:3px 10px 3px 4px}.chip .ci{width:26px;height:26px;font-size:22px}.chip svg{width:24px;height:24px}
 .wtip{font-size:13px}.wsrc{font-size:11px}
 }
+/* kväll */
+.modesw{display:inline-flex;gap:4px;margin-top:8px;background:rgba(255,255,255,.35);border-radius:99px;padding:4px}
+.modesw button{font-family:inherit;font-weight:700;font-size:15px;border:none;border-radius:99px;padding:6px 14px;background:transparent;color:#24527a;cursor:pointer}
+.modesw button.active{background:#fff;color:#2b2350;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.moon{display:none;position:fixed;top:24px;right:30px;width:110px;height:110px;border-radius:50%;z-index:0;
+background:radial-gradient(circle at 35% 35%,#fffbe6,#ffe9a8 60%,#f3d27a);box-shadow:0 0 60px 18px rgba(255,240,180,.35)}
+.moon::after{content:"";position:absolute;width:22px;height:22px;border-radius:50%;background:rgba(220,190,110,.45);top:58px;left:30px;box-shadow:34px -22px 0 -4px rgba(220,190,110,.4),40px 18px 0 -7px rgba(220,190,110,.35)}
+.nightsky{display:none;position:fixed;inset:0;z-index:0;pointer-events:none}
+.nightsky i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:twinkle 2.5s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
+body.night{background:linear-gradient(180deg,#0b1340 0%,#26286e 55%,#4b3b8f 100%)}
+body.night .sun,body.night .cloud{display:none}
+body.night .moon,body.night .nightsky{display:block}
+body.night h1{text-shadow:0 3px 0 #6b4fd6,0 6px 14px rgba(0,0,0,.3)}
+body.night .sub{color:#d9dcff}
+body.night .modesw{background:rgba(255,255,255,.15)}
+body.night .modesw button{color:#d9dcff}
+body.night .modesw button.active{color:#2b2350}
+body.night .hills path:first-child{fill:#3b5e7a}
+body.night .hills path:last-child{fill:#2c4a63}
+body.night .p-harald{--bg:linear-gradient(160deg,#4a6cf0,#2b3fae);--shadow:#1f2c80}
+body.night .p-klas{--bg:linear-gradient(160deg,#25a58a,#147060);--shadow:#0d4d42}
+body.night .tab.t-harald{background:linear-gradient(160deg,#4a6cf0,#2b3fae)}
+body.night .tab.t-klas{background:linear-gradient(160deg,#25a58a,#147060)}
+body.night .gbtn{background:rgba(255,255,255,.75)}
+.gbtn.hide{display:none}
+body.night .wcard{background:#f2f4ff}
+@media (max-width:720px){.moon{width:64px;height:64px;top:8px;right:-10px}.moon::after{width:12px;height:12px;top:34px;left:16px}}
 </style>
 </head>
 <body>
 <div class="sun"></div>
+<div class="moon"></div>
+<div class="nightsky" id="nightsky"></div>
 <div class="cloud c1"></div><div class="cloud c2"></div>
 <svg class="hills" viewBox="0 0 1200 120" preserveAspectRatio="none">
 <path d="M0 70 Q150 10 300 60 T600 55 T900 50 T1200 60 V120 H0Z" fill="#9be38b"/>
 <path d="M0 95 Q200 50 420 90 T820 85 T1200 80 V120 H0Z" fill="#6fd06a"/>
 </svg>
 <header>
-<h1>☀️ Morgonuppdraget ☀️</h1>
+<h1 id="title">☀️ Morgonuppdraget ☀️</h1>
 <div class="sub" id="today"></div>
+<div class="modesw" id="modesw"><button data-m="morgon">☀️ Morgon</button><button data-m="kvall">🌙 Kväll</button></div>
 </header>
 <section class="weather" id="weather"></section>
 <nav class="tabs" id="tabs"></nav>
@@ -206,6 +237,9 @@ h1{font-size:26px;white-space:nowrap}
 <div class="grown">
 <button class="gbtn" id="soundBtn">🔊 Ljud på</button>
 <button class="gbtn" id="inhalerBtn">💨 Klas inhalator: av</button>
+<button class="gbtn" id="nailsBtn">✂️ Naglar i kväll: av</button>
+<button class="gbtn" id="creamBtn">🧴 Hudkräm: av</button>
+<button class="gbtn" id="bookBtn">📚 Väljer bok: av</button>
 <button class="gbtn" id="resetBtn"><span class="prog"></span><span style="position:relative">↺ Håll inne: börja om</span></button>
 </div>
 <div class="party" id="party">
@@ -226,15 +260,45 @@ h1{font-size:26px;white-space:nowrap}
 <canvas id="fx"></canvas>
 <script>
 /* ---------- data ---------- */
+const INH='<svg viewBox="0 0 64 64"><rect x="22" y="4" width="20" height="34" rx="7" fill="#ff8a3d"/><rect x="26" y="8" width="12" height="6" rx="3" fill="#ffd23f"/><path d="M18 34h28v14a6 6 0 0 1-6 6H24a6 6 0 0 1-6-6Z" fill="#3a7bff"/><rect x="8" y="42" width="16" height="12" rx="4" fill="#3a7bff"/><circle cx="6" cy="40" r="3" fill="#bfe6ff"/><circle cx="3" cy="48" r="2.5" fill="#bfe6ff"/><circle cx="6" cy="56" r="2" fill="#bfe6ff"/></svg>';
 const TASKS = [
 {id:'toa',   icon:'🚽', label:'Gått på toa',      say:'Gå på toaletten'},
 {id:'frukost',icon:'🥣', label:'Ätit frukost',     say:'Ät frukost'},
 {id:'tander',icon:'🪥', label:'Borstat tänderna', say:'Borsta tänderna'},
-{id:'inhalator',icon:'<svg viewBox="0 0 64 64"><rect x="22" y="4" width="20" height="34" rx="7" fill="#ff8a3d"/><rect x="26" y="8" width="12" height="6" rx="3" fill="#ffd23f"/><path d="M18 34h28v14a6 6 0 0 1-6 6H24a6 6 0 0 1-6-6Z" fill="#3a7bff"/><rect x="8" y="42" width="16" height="12" rx="4" fill="#3a7bff"/><circle cx="6" cy="40" r="3" fill="#bfe6ff"/><circle cx="3" cy="48" r="2.5" fill="#bfe6ff"/><circle cx="6" cy="56" r="2" fill="#bfe6ff"/></svg>', label:'Tagit inhalatorn', say:'Ta inhalatorn', only:['klas']},
+{id:'inhalator',icon:'<svg viewBox="0 0 64 64"><rect x="22" y="4" width="20" height="34" rx="7" fill="#ff8a3d"/><rect x="26" y="8" width="12" height="6" rx="3" fill="#ffd23f"/><path d="M18 34h28v14a6 6 0 0 1-6 6H24a6 6 0 0 1-6-6Z" fill="#3a7bff"/><rect x="8" y="42" width="16" height="12" rx="4" fill="#3a7bff"/><circle cx="6" cy="40" r="3" fill="#bfe6ff"/><circle cx="3" cy="48" r="2.5" fill="#bfe6ff"/><circle cx="6" cy="56" r="2" fill="#bfe6ff"/></svg>', label:'Tagit inhalatorn', say:'Ta inhalatorn', only:['klas'], opt:'inhaler'},
 {id:'klader',icon:'👕', label:'Klätt på mig',     say:'Klä på dig'},
 {id:'ute',   icon:'🧥', label:'Ytterkläder på',   say:'Ta på ytterkläderna'}
 ];
-function tasksFor(pid){return TASKS.filter(t=>(!t.only||t.only.includes(pid))&&(t.id!=='inhalator'||(state&&state.inhaler)));}
+const EVENING = [
+{id:'av',    icon:'🧦', label:'Klätt av mig',     say:'Klä av dig'},
+{id:'toa',   icon:'🚽', label:'Gått på toa',      say:'Gå på toaletten'},
+{id:'tander',icon:'🪥', label:'Borstat tänderna', say:'Borsta tänderna'},
+{id:'inhalator',icon:INH, label:'Tagit inhalatorn', say:'Ta inhalatorn', only:['klas'], opt:'inhalerE'},
+{id:'naglar',icon:'✂️', label:'Klippt naglarna',  say:'Klipp naglarna', opt:'nails'},
+{id:'kram',  icon:'🧴', label:'Smort in mig',     say:'Smörj in dig med hudkräm', opt:'cream'},
+{id:'bok',   icon:'📚', label:'Valt godnattsaga', say:'Välj en godnattsaga', book:true}
+];
+/* ---------- morgon eller kväll ---------- */
+function autoMode(){const h=new Date().getHours();return (h>=16||h<3)?'kvall':'morgon';}
+let manualMode=null; // {mode, auto}
+function MODE(){return manualMode&&manualMode.auto===autoMode()?manualMode.mode:autoMode();}
+function ymd(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function eveDate(){return new Date(Date.now()-3*3600*1000);} // kvällen räknas till kl 03
+function sessKey(){return MODE()==='kvall'?'k-'+ymd(eveDate()):'m-'+ymd(new Date());}
+function optOn(t){
+if(!state) return false;
+if(t.opt==='nails') return state.nails===sessKey();
+return !!state[t.opt];
+}
+function bookTurn(){
+const b=state&&state.book; if(!b||!b.pid) return null;
+const days=Math.round((new Date(ymd(eveDate()).replace(/-/g,'/'))-new Date(b.date.replace(/-/g,'/')))/864e5);
+return (((days%2)+2)%2===0)?b.pid:(b.pid==='harald'?'klas':'harald');
+}
+function tasksFor(pid){
+const list=MODE()==='kvall'?EVENING:TASKS;
+return list.filter(t=>(!t.only||t.only.includes(pid))&&(!t.opt||optOn(t))&&(!t.book||bookTurn()===pid));
+}
 const PLAYERS = [
 {id:'harald', name:'Harald', cls:'p-harald', animal:'🪸'},
 {id:'klas',   name:'Klas',   cls:'p-klas',   animal:'🦀'}
@@ -362,12 +426,23 @@ let state;
 function load(){
 let s=null; try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!s) s={date:todayStr(),done:{},stars:{},animal:{},sound:true,celebrated:{}};
-if(s.date!==todayStr()){s.date=todayStr();s.done={};s.celebrated={};}
+if(!s.prog){ s.prog={}; if(s.date===todayStr()&&s.done) s.prog['m-'+s.date]={done:s.done,celebrated:s.celebrated||{}}; s.sess=null; }
+state=s; syncSession();
 PLAYERS.forEach(p=>{s.done[p.id]=s.done[p.id]||{};s.stars[p.id]=s.stars[p.id]||0;s.animal[p.id]=s.animal[p.id]||p.animal;});
 if(!s.v2){ if(s.animal.harald==='🦁') s.animal.harald='🪸'; if(s.animal.klas==='🐻') s.animal.klas='🦀'; s.v2=true; }
 state=s;
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function syncSession(){
+const k=sessKey(); if(state.sess===k) return false;
+if(state.sess) state.prog[state.sess]={done:state.done,celebrated:state.celebrated};
+const keep=['m-'+ymd(new Date()),'k-'+ymd(eveDate()),k];
+Object.keys(state.prog).forEach(x=>{if(!keep.includes(x)) delete state.prog[x];});
+const pr=state.prog[k]||{done:{},celebrated:{}};
+state.done=pr.done; state.celebrated=pr.celebrated||{};
+PLAYERS.forEach(p=>{state.done[p.id]=state.done[p.id]||{};});
+state.sess=k; state.date=todayStr(); return true;
+}
+function save(){if(state&&state.sess) state.prog[state.sess]={done:state.done,celebrated:state.celebrated};try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
 load();
 /* ---------- ljud ---------- */
 let ac=null;
@@ -422,13 +497,13 @@ el.innerHTML=`
 <div class="fill"></div><div class="lane"></div>
 ${tasksFor(p.id).map((t,i,a)=>`<div class="dot" style="left:calc(6px + (100% - 104px) * ${(i+1)/a.length} + 22px)"></div>`).join('')}
 <div class="runner">${state.animal[p.id]}</div>
-<div class="goal">🏫</div>
+<div class="goal">${MODE()==='kvall'?'🛏️':'🏫'}</div>
 </div>
 <div class="tasks">
 ${tasksFor(p.id).map(t=>`<button class="task" data-p="${p.id}" data-t="${t.id}">
 <span class="icon">${t.icon}</span><span class="lblwrap"><span class="label">${t.label}</span>${t.id==='ute'&&WEAR?`<span class="wear">${WEAR.items.map(k=>ITEMS[k].i).join('')}</span>`:''}</span><span class="check"></span></button>`).join('')}
 </div>
-<div class="finish">🎉 Klar för förskolan! 🎉</div>`;
+<div class="finish">${MODE()==='kvall'?'😴 Klar för sängen! 🌙':'🎉 Klar för förskolan! 🎉'}</div>`;
 main.appendChild(el);
 update(p.id,false);
 });
@@ -449,8 +524,22 @@ el.querySelector('.st').textContent=state.stars[pid];
 el.classList.toggle('done',n===tasksFor(pid).length);
 if(document.getElementById('tabs').children.length) renderTabs();
 }
-document.getElementById('today').textContent=
-new Date().toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'}).replace(/^./,c=>c.toUpperCase())+' – klara, färdiga, gå!';
+function applyMode(){
+const ev=MODE()==='kvall';
+document.body.classList.toggle('night',ev);
+document.getElementById('title').textContent=ev?'🌙 Kvällsuppdraget ⭐':'☀️ Morgonuppdraget ☀️';
+document.getElementById('today').textContent=new Date().toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'}).replace(/^./,c=>c.toUpperCase())+(ev?' – snart dags att sova!':' – klara, färdiga, gå!');
+document.querySelectorAll('#modesw button').forEach(b=>b.classList.toggle('active',b.dataset.m===MODE()));
+document.querySelector('meta[name=theme-color]').setAttribute('content',ev?'#0b1340':'#7fd3ff');
+if(window.__grownReady) grownLabels();
+}
+(function(){const sky=document.getElementById('nightsky');let h='';for(let i=0;i<60;i++){h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*70}%;animation-delay:${(Math.random()*2.5).toFixed(2)}s;transform:scale(${(.6+Math.random()).toFixed(2)})"></i>`;}sky.innerHTML=h;})();
+document.getElementById('modesw').addEventListener('click',e=>{
+const b=e.target.closest('button'); if(!b) return;
+manualMode=b.dataset.m===autoMode()?null:{mode:b.dataset.m,auto:autoMode()};
+syncSession(); save(); applyMode(); render(); tone(b.dataset.m==='kvall'?440:660,0,.15,'triangle',.25);
+});
+applyMode();
 main.addEventListener('click',e=>{
 const av=e.target.closest('.avatar'); if(av){openPicker(av.dataset.p);return;}
 const b=e.target.closest('.task'); if(!b) return;
@@ -487,12 +576,13 @@ let fireworksOn=false;
 function celebrate(pid){
 const p=PLAYERS.find(x=>x.id===pid);
 const both=PLAYERS.every(x=>count(x.id)===tasksFor(x.id).length);
-document.getElementById('partyBig').textContent=both?'🏆':state.animal[pid];
-document.getElementById('partyTitle').textContent=both?'Båda är klara!':'Bra jobbat '+p.name+'!';
-document.getElementById('partyText').textContent=both?'Harald och Klas är redo för förskolan!':'Du är redo för förskolan!';
+const ev=MODE()==='kvall';
+document.getElementById('partyBig').textContent=both?(ev?'🌙':'🏆'):state.animal[pid];
+document.getElementById('partyTitle').textContent=both?(ev?'Båda är klara för natten!':'Båda är klara!'):(ev?'Sov gott '+p.name+'!':'Bra jobbat '+p.name+'!');
+document.getElementById('partyText').textContent=ev?(both?'Harald och Klas är redo för sängen!':'Du är redo för sängen!'):(both?'Harald och Klas är redo för förskolan!':'Du är redo för förskolan!');
 document.getElementById('partyStars').innerHTML=tasksFor(pid).map((t,i)=>`<span style="animation-delay:${.3+i*.15}s">⭐</span>`).join('');
 party.classList.add('show');
-sndFanfare(); say(both?'Hurra! Harald och Klas är klara för förskolan!':'Hurra '+p.name+'! Du är klar för förskolan!');
+sndFanfare(); say(ev?(both?'Hurra! Harald och Klas är klara för natten. Sov gott!':'Hurra '+p.name+'! Du är klar för natten. Sov gott!'):(both?'Hurra! Harald och Klas är klara för förskolan!':'Hurra '+p.name+'! Du är klar för förskolan!'));
 fireworksOn=true; confetti(160);
 let k=0; const iv=setInterval(()=>{ if(!fireworksOn||k++>(both?22:12)){clearInterval(iv);return;} launch(); },380);
 }
@@ -552,10 +642,20 @@ if(parts.length||rockets.length) requestAnimationFrame(tick); else {running=fals
 const soundBtn=document.getElementById('soundBtn');
 function soundLabel(){soundBtn.textContent=state.sound?'🔊 Ljud på':'🔇 Ljud av';}
 soundLabel();
-const inhalerBtn=document.getElementById('inhalerBtn');
-function inhalerLabel(){inhalerBtn.textContent=state.inhaler?'💨 Klas inhalator: på':'💨 Klas inhalator: av';inhalerBtn.classList.toggle('on',!!state.inhaler);}
-inhalerLabel();
-inhalerBtn.addEventListener('click',()=>{state.inhaler=!state.inhaler;save();inhalerLabel();render();tone(state.inhaler?660:440,0,.15,'triangle',.25);});
+const inhalerBtn=document.getElementById('inhalerBtn'), nailsBtn=document.getElementById('nailsBtn'), bookBtn=document.getElementById('bookBtn'), creamBtn=document.getElementById('creamBtn');
+function grownLabels(){
+const ev=MODE()==='kvall', key=ev?'inhalerE':'inhaler';
+inhalerBtn.textContent='💨 Klas inhalator '+(ev?'kväll':'morgon')+': '+(state[key]?'på':'av'); inhalerBtn.classList.toggle('on',!!state[key]);
+nailsBtn.classList.toggle('hide',!ev); creamBtn.classList.toggle('hide',!ev); creamBtn.textContent='🧴 Hudkräm: '+(state.cream?'på':'av'); creamBtn.classList.toggle('on',!!state.cream); bookBtn.classList.toggle('hide',!ev);
+const nOn=state.nails===sessKey(); nailsBtn.textContent='✂️ Naglar i kväll: '+(nOn?'på':'av'); nailsBtn.classList.toggle('on',nOn);
+const bt=bookTurn(); bookBtn.textContent='📚 Väljer bok i kväll: '+(bt?PLAYERS.find(p=>p.id===bt).name:'av'); bookBtn.classList.toggle('on',!!bt);
+}
+inhalerBtn.addEventListener('click',()=>{const key=MODE()==='kvall'?'inhalerE':'inhaler';state[key]=!state[key];save();grownLabels();render();tone(state[key]?660:440,0,.15,'triangle',.25);});
+nailsBtn.addEventListener('click',()=>{state.nails=state.nails===sessKey()?null:sessKey();save();grownLabels();render();tone(state.nails?660:440,0,.15,'triangle',.25);});
+bookBtn.addEventListener('click',()=>{const bt=bookTurn();const next=bt===null?'harald':bt==='harald'?'klas':null;
+state.book=next?{pid:next,date:ymd(eveDate())}:null;save();grownLabels();render();tone(next?660:440,0,.15,'triangle',.25);});
+creamBtn.addEventListener('click',()=>{state.cream=!state.cream;save();grownLabels();render();tone(state.cream?660:440,0,.15,'triangle',.25);});
+window.__grownReady=true; grownLabels();
 soundBtn.addEventListener('click',()=>{state.sound=!state.sound;save();soundLabel();if(state.sound)tone(660,0,.15,'triangle',.25);});
 const resetBtn=document.getElementById('resetBtn'); let holdT=null;
 function startHold(e){e.preventDefault();resetBtn.classList.add('holding');holdT=setTimeout(()=>{
@@ -565,12 +665,13 @@ function endHold(){clearTimeout(holdT);resetBtn.classList.remove('holding');}
 resetBtn.addEventListener('pointerdown',startHold);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>resetBtn.addEventListener(ev,endHold));
 /* ny dag medan sidan står öppen */
-setInterval(()=>{ if(state.date!==todayStr()){load();renderWeather();render();} },60000);
+function tickMode(){ if(sessKey()!==state.sess){ syncSession(); save(); applyMode(); renderWeather(); render(); } }
+setInterval(tickMode,60000);
 renderWeather();
 render();
 fetchWeather();
 setInterval(fetchWeather,30*60*1000);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ if(state.date!==todayStr()){load();render();} fetchWeather(); } });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ tickMode(); fetchWeather(); } });
 if('serviceWorker' in navigator){ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
